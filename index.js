@@ -37,6 +37,7 @@ async function run() {
 
     const roomsCollection = client.db("hotelDB").collection("rooms");
     const bookingCollection = client.db('hotelDB').collection('booked')
+    const riviewColllection = client.db('hotelDB').collection('review')
 
     // rooms found 
     app.get('/rooms', async (req, res) => {
@@ -112,6 +113,21 @@ async function run() {
       res.send(result);
     })
 
+    // revew 
+    app.post('/riview', async (req, res) => {
+      const newsit = req.body;
+      console.log(newsit)
+      const result = await riviewColllection.insertOne(newsit);
+      res.send(result)
+    })
+    app.get('/riview', async (req, res) => {
+      const cursor = riviewColllection
+        .find();
+      const result = await cursor.toArray()
+      console.log(result);
+      res.send(result)
+    })
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -132,3 +148,4 @@ app.get('/', (req, res) => {
 app.listen(port, (req, res) => {
   console.log('app runnig at port :', port);
 })
+
