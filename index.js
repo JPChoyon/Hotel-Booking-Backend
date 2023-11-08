@@ -9,7 +9,11 @@ const port = process.env.PORT || 5000;
 
 // middleware 
 app.use(cors({
-  origin: ['http://localhost:5173'],
+  origin: [
+    // 'http://localhost:5173',
+    'https://hotel-booking-jpck.web.app/',
+    'https://hotel-booking-jpck.firebaseapp.com/'
+  ],
   credentials: true
 }))
 app.use(express.json())
