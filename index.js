@@ -30,6 +30,31 @@ const client = new MongoClient(uri, {
   }
 });
 
+// logger middleware 
+const logger = async (req, res, next) => {
+  console.log('called', req.host, req.originalUrl)
+  next()
+}
+
+// verify tocken
+const verifyToken = async (req, res, next) => {
+  const token = req.cookies?.token;
+  console.log(token);
+  if (!token) {
+    return res.status(401).send({ message: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.SECRET, (err, decoded) => {
+    if (err) {
+      console.log(err);
+      return res.status(401).send({
+        message: 'unauthorized access'
+      })
+    }
+    console.log(decoded);
+    req.user = decoded
+    next()
+  })
+}
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -55,14 +80,14 @@ async function run() {
     });
 
     // jwt authinacation
-    app.post('/jwt', async (req, res) => {
+    app.post('/jwt',logger, async (req, res) => {
       const user = req.body;
       console.log('tocken for ', user);
       const token = jwt.sign(user, process.env.SECRET, { expiresIn: '1h' })
       res.cookie('token', token, {
         httpOnly: true,
-        secure: true,
-        sameSite: 'none',
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
       })
 
         .send({ success: true })
@@ -74,9 +99,11 @@ async function run() {
       res.clearCookie('token', { maxAge: 0 }).send({ success: true })
     })
 
+
     // bookings 
-    app.get('/bookings', async (req, res) => {
+    app.get('/bookings', logger, verifyToken, async (req, res) => {
       console.log(req.query.email);
+      console.log('ttttt token', req.cookies.token)
       let query = {};
       if (req.query?.email) {
         query = { email: req.query.email }
@@ -116,7 +143,7 @@ async function run() {
     // revew 
     app.post('/riview', async (req, res) => {
       const newsit = req.body;
-      console.log(newsit)
+
       const result = await riviewColllection.insertOne(newsit);
       res.send(result)
     })
@@ -124,7 +151,7 @@ async function run() {
       const cursor = riviewColllection
         .find();
       const result = await cursor.toArray()
-      console.log(result);
+
       res.send(result)
     })
 
