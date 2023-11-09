@@ -70,15 +70,10 @@ async function run() {
 
     // rooms found 
     app.get('/rooms', async (req, res) => {
-      const filter = req.query;
-      console.log(filter);
-      const query = {};
-      const options = {
-        sort: {
-          price: filter.sort === 'asc' ? 1 : - 1
-        }
-      }
-      const cursor = roomsCollection.find(query, options);
+      let sort = {};
+      const sortvalue = req.query.sortvalue
+      sort["price"] = sortvalue;
+      const cursor = roomsCollection.find({}).sort(sort)
       const result = await cursor.toArray();
       res.send(result)
     })
