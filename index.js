@@ -70,7 +70,15 @@ async function run() {
 
     // rooms found 
     app.get('/rooms', async (req, res) => {
-      const cursor = roomsCollection.find();
+      const filter = req.query;
+      console.log(filter);
+      const query = {};
+      const options = {
+        sort: {
+          price: filter.sort === 'asc' ? 1 : - 1
+        }
+      }
+      const cursor = roomsCollection.find(query, options);
       const result = await cursor.toArray();
       res.send(result)
     })
@@ -84,7 +92,7 @@ async function run() {
     });
 
     // jwt authinacation
-    app.post('/jwt',logger, async (req, res) => {
+    app.post('/jwt', logger, async (req, res) => {
       const user = req.body;
       console.log('tocken for ', user);
       const token = jwt.sign(user, process.env.SECRET, { expiresIn: '1h' })
